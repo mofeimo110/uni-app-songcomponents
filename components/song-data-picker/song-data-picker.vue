@@ -43,11 +43,14 @@
 			</view>
 
 			<view class="picker-view" style="overflow-y:auto" v-if="showSearchResult">
-				<uni-list-item v-for="(item, index) in searchResult" :key="index" :title="item.text" clickable link @click="clickSearch(item)"></uni-list-item>
+				<view v-show="searchResult.length">
+					<uni-list-item v-for="(item, index) in searchResult" :key="index" :title="item.text" clickable link @click="clickSearch(item)"></uni-list-item>
+				</view>
+				<view v-show="!searchResult.length" style="text-align: center;line-height:200px;"><text style="color: #999999">--未发现任何匹配数据，请重新输入--</text></view>
 			</view>
 
 			<data-picker-view
-				v-if="!showSearchResult"
+				v-show="!showSearchResult"
 				class="picker-view"
 				ref="pickerView"
 				v-model="value"
@@ -176,18 +179,27 @@ export default {
 			const e = [];
 			const loop = (rows, ids) => {
 				let row = rows.find(x => x.value == ids[0]);
+				if (e.length) {
+					row.parent_value = e[e.length - 1].value;
+				}
 				e.push(row);
-				if (!row.children) return;
+				if (!row.children || !row.children instanceof Array || !row.children.length) return;
 				loop(row.children, ids.splice(1, ids.length - 1));
 			};
-			loop(this.localdata, item.value.split(','));
+			loop(this.localdata, (item.value + '').split(','));
 			this.onchange(e);
 		},
 		searchClick() {
 			if (!this.searchWord) {
+				this.showSearchResult = false;
 				return;
 			}
-			this.searchResult = this.searchDatas.filter(x => x.text.split(' ').join('').includes(this.searchWord));
+			this.searchResult = this.searchDatas.filter(x =>
+				x.text
+					.split(' ')
+					.join('')
+					.includes(this.searchWord)
+			);
 			this.showSearchResult = true;
 		},
 		onPropsChange() {
@@ -270,6 +282,7 @@ export default {
 			this._treeData = this.$refs.pickerView._treeData;
 		},
 		onchange(e) {
+			console.log(e);
 			this.hide();
 			this.inputSelected = e;
 			this._dispatchEvent(e);
