@@ -41,7 +41,7 @@
 |     属性名      |                   类型                   |      可选值       | 默认值 |                                                                                                                   说明                                                                                                                   |
 | :-------------: | :--------------------------------------: | :---------------: | :----: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 |   openSearch    |                 Boolean                  |    true/false     | false  |                                                                                                              是否显示搜索框                                                                                                              |
-|    searchFn     | Function(searchList,searchWord,callback) |     function      |        |                                                                                            自定义的搜索函数，需要返回一个数组，详细见下方示例                                                                                            |
+|    searchFn     | Function(searchList,searchWord,callback) |     function      |        |                                自定义的搜索函数，需要返回一个数组。如果数据量不大可以不实现此属性，使用内置默认函数即可。如果数据量巨大或者是需要请求服务端等异步场景，建议重新实现此函数，详细见下方示例                                |
 | openInputSearch |              Boolean,Number              | true/false/number | false  | 是否开启输入框的 input 搜索事件，true 表示每次输入都会搜索，数字表示输入的文字长度达到几开始搜索，数字 0 与 false 效果一致。<br />需要注意的是如果候选数据巨大，尽量不要开启此功能，如果一定要开启，建议重写 searchFn 函数，并对函数防抖 |
 
 #### searchFn 示例
@@ -56,7 +56,7 @@
 	methods:{
     /**
      * searchList: 全量列表数据:{searchText:显示字符串,value:值}
-     * searchWord：查询的关键字
+     * searchWord
      */
 		// 实现一：通常情况下使用返回值
 		mySearchFn(searchList, searchWord) {
