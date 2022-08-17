@@ -1,7 +1,7 @@
 <template>
 	<view class="container">
 		<view class="title"><text>uni-data-picker 本地数据</text></view>
-		<song-data-picker :openSearch="true" v-model="code" placeholder="请选择地址" popup-title="请选择所在地区" :localdata="dataTree"></song-data-picker>
+		<song-data-picker :openSearch="true" v-model="code" placeholder="请选择地址" popup-title="请选择所在地区" :localdata="dataTree" :searchFn="mySearchFn"></song-data-picker>
 		<button @click="random">随机更换</button>
 	</view>
 </template>
@@ -27,6 +27,11 @@ export default {
 		onnodeclick(e) {
 			console.log(e);
 		},
+        async mySearchFn(searchList, searchWord,callback) {
+			console.log(searchList[0],searchWord)
+			console.log(searchList.filter(x => x.searchText.includes(searchWord)))
+             return searchList.filter(x => x.searchText.includes(searchWord));
+        },
 		random(){
 			const genRandom = (min, max) => (Math.random() * (max - min + 1) | 0) + min;
 			let index = genRandom(0,this.minLevel.length-1);

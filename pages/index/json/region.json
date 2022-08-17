@@ -5,6 +5,7 @@
 		"name": "市辖区",
 		"code": "110100",
 		"child": [{
+	"disabled":true,
 			"name": "东城区",
 			"code": "110101",
 			"child": []
