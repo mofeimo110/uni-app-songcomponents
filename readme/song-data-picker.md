@@ -36,13 +36,13 @@
 
 ### DataPicker Props
 
-> 目前所有的 props 都是在官方的 uni-data-picker(0.1.8)的基础上进行的添加，下边只标注新增的属性
+> 目前所有的 props 都是在官方的 uni-data-picker(1.0.4)的基础上进行的添加，下边只标注新增的属性
 
-|     属性名      |      类型      |      可选值       | 默认值 |                                                                                                                   说明                                                                                                                   |
-| :-------------: | :------------: | :---------------: | :----: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
-|   openSearch    |    Boolean     |    true/false     | false  |                                                                                                              是否显示搜索框                                                                                                              |
-|    searchFn     |    Function    |     function      |        |                                                                                                    自定义的搜索函数，需要返回一个数组                                                                                                    |
-| openInputSearch | Boolean,Number | true/false/number | false  | 是否开启输入框的 input 搜索事件，true 表示每次输入都会搜索，数字表示输入的文字长度达到几开始搜索，数字 0 与 false 效果一致。<br />需要注意的是如果候选数据巨大，尽量不要开启此功能，如果一定要开启，建议重写 searchFn 函数，并对函数防抖 |
+|     属性名      |                   类型                   |      可选值       | 默认值 |                                                                                                                   说明                                                                                                                   |
+| :-------------: | :--------------------------------------: | :---------------: | :----: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
+|   openSearch    |                 Boolean                  |    true/false     | false  |                                                                                                              是否显示搜索框                                                                                                              |
+|    searchFn     | Function(searchList,searchWord,callback) |     function      |        |                                                                                            自定义的搜索函数，需要返回一个数组，详细见下方示例                                                                                            |
+| openInputSearch |              Boolean,Number              | true/false/number | false  | 是否开启输入框的 input 搜索事件，true 表示每次输入都会搜索，数字表示输入的文字长度达到几开始搜索，数字 0 与 false 效果一致。<br />需要注意的是如果候选数据巨大，尽量不要开启此功能，如果一定要开启，建议重写 searchFn 函数，并对函数防抖 |
 
 #### searchFn 示例
 
@@ -54,14 +54,34 @@
 </template>
 {
 	methods:{
+    /**
+     * searchList: 全量列表数据:{searchText:显示字符串,value:值}
+     * searchWord：查询的关键字
+     */
+		// 实现一：通常情况下使用返回值
 		mySearchFn(searchList, searchWord) {
-			return searchList.filter(x => x.searctText.includes(searchWord));
-		}
+			return searchList.filter(x => x.searchText.includes(searchWord));
+		},
+		// 实现二：在函数内部通过callback设置查询结果，可在异步场景下使用
+		mySearchFn2(searchList, searchWord, callback) {
+			const result = searchList.filter(x => x.searchText.includes(searchWord));
+			callback(result);
+		},
+		// 实现三：返回一个Promise，可在异步场景下使用
+		mySearchFn3(searchList, searchWord, callback) {
+			const result = searchList.filter(x => x.searchText.includes(searchWord));
+			return Promise.resolve(result);
+		},
+		// 实现四：返回一个Promise，可在异步场景下使用（实现三的变体）
+	 	async mySearchFn4(searchList, searchWord, callback) {
+			const result = searchList.filter(x => x.searchText.includes(searchWord));
+			return result;
+		},
+
+
 	}
 }
 ```
-
-> > > > > > > 0a8fd15a211014f31445597e3ee9f2d38e701b46
 
 ### DataPicker Events
 
