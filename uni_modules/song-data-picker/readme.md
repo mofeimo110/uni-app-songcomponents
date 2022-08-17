@@ -54,10 +54,10 @@
 </template>
 {
 	methods:{
-    /**
-     * searchList: 全量列表数据:{searchText:显示字符串,value:值}
-     * searchWord
-     */
+		/**
+		 * searchList: 全量列表数据:{searchText:显示字符串,value:值}
+		 * searchWord: 输入的查询字符串
+		 */
 		// 实现一：通常情况下使用返回值
 		mySearchFn(searchList, searchWord) {
 			return searchList.filter(x => x.searchText.includes(searchWord));
