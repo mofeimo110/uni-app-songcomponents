@@ -1,7 +1,7 @@
 {
 	"id": "song-data-picker",
 	"displayName": "基于uDataPicker（uni-data-picker）的带有搜索功能选择器",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"description": "在官方组件uDataPicker（uni-data-picker:1.0.4）基础上添加搜索功能",
 	"keywords": [
         "级联",
@@ -14,12 +14,8 @@
 	"engines": {
 		"HBuilderX": "^3.1.19"
 	},
-	"dcloudext": {
-		"category": [
-			"前端组件",
-			"通用组件"
-		],
-		"sale": {
+    "dcloudext": {
+        "sale": {
 			"regular": {
 				"price": "0.00"
 			},
@@ -35,7 +31,8 @@
 			"data": "无",
 			"permissions": "无"
 		},
-		"npmurl": ""
+        "npmurl": "",
+        "type": "component-vue"
 	},
 	"uni_modules": {
 		"dependencies": [

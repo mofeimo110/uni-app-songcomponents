@@ -4,6 +4,7 @@
 		<song-data-picker :openSearch="true" v-model="code" placeholder="请选择地址" popup-title="请选择所在地区"
 			:localdata="dataTree" :searchFn="mySearchFn"></song-data-picker>
 		<button @click="random">随机更换</button>
+		<button @click="append">追加数据</button>
 	</view>
 </template>
 
@@ -25,6 +26,12 @@
 			}
 		},
 		methods: {
+			append() {
+				this.dataTree.push({
+					value: new Date().valueOf(),
+					text: new Date().valueOf() + ''
+				})
+			},
 			onnodeclick(e) {
 				console.log(e);
 			},

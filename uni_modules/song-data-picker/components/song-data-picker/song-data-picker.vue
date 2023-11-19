@@ -55,10 +55,11 @@
 			</view>
 			<!-- search增强-end -->
 
-			<data-picker-view v-show="!showSearchResult" class="picker-view" ref="pickerView" v-model="dataValue" :localdata="localdata"
-				:preload="preload" :collection="collection" :field="field" :orderby="orderby" :where="where"
-				:step-searh="stepSearh" :self-field="selfField" :parent-field="parentField" :managed-mode="true"
-				:map="map" :ellipsis="ellipsis" @change="onchange" @datachange="ondatachange" @nodeclick="onnodeclick">
+			<data-picker-view v-show="!showSearchResult" class="picker-view" ref="pickerView" v-model="dataValue"
+				:localdata="localdata" :preload="preload" :collection="collection" :field="field" :orderby="orderby"
+				:where="where" :step-searh="stepSearh" :self-field="selfField" :parent-field="parentField"
+				:managed-mode="true" :map="map" :ellipsis="ellipsis" @change="onchange" @datachange="ondatachange"
+				@nodeclick="onnodeclick">
 			</data-picker-view>
 		</view>
 	</view>
@@ -68,7 +69,7 @@
 	import dataPicker from "../song-data-pickerview/song-data-picker.js"
 	import DataPickerView from "../song-data-pickerview/song-data-pickerview.vue"
 	import searchMixin from './searchMixin.js'
-	
+
 
 	/**
 	 * DataPicker 级联选择
@@ -95,7 +96,7 @@
 	 */
 	export default {
 		name: 'UniDataPicker',
-		emits: ['popupopened', 'popupclosed', 'nodeclick', 'input', 'change', 'update:modelValue'],
+		emits: ['popupopened', 'popupclosed', 'nodeclick', 'input', 'change', 'update:modelValue', 'inputclick'],
 		mixins: [dataPicker, searchMixin],
 		components: {
 			DataPickerView
@@ -147,60 +148,52 @@
 			}
 		},
 		created() {
-			this.form = this.getForm('uniForms')
-			this.formItem = this.getForm('uniFormsItem')
-			if (this.formItem) {
-				if (this.formItem.name) {
-					this.rename = this.formItem.name
-					this.form.inputChildrens.push(this)
-				}
-			}
-
 			this.$nextTick(() => {
-				this.load()
+				this.load();
 			})
-			
+		},
+		watch: {
+			localdata: {
+				handler() {
+					this.load()
+				},
+				deep: true
+			},
 		},
 		methods: {
 			clear() {
-				this.inputSelected.splice(0)
-				this._dispatchEvent([])
+				this._dispatchEvent([]);
 			},
 			onPropsChange() {
-				this._treeData = []
-				this.selectedIndex = 0
-				this.load()
+				this._treeData = [];
+				this.selectedIndex = 0;
+
+				this.load();
 			},
 			load() {
 				if (this.readonly) {
-					this._processReadonly(this.localdata, this.dataValue)
-					return
+					this._processReadonly(this.localdata, this.dataValue);
+					return;
 				}
 
-				if (this.isLocaldata) {
-					this.loadData()
-					this.inputSelected = this.selected.slice(0)
+				// 回显本地数据
+				if (this.isLocalData) {
+					this.loadData();
+					this.inputSelected = this.selected.slice(0);
+					// 搜索增强start
 					// 只在本地数据时搜索生效
 					this.initSearchDatas();
-				} else if (!this.parentField && !this.selfField && this.hasValue) {
-					this.getNodeData(() => {
-						this.inputSelected = this.selected.slice(0)
-					})
-				} else if (this.hasValue) {
-					this.getTreePath(() => {
-						this.inputSelected = this.selected.slice(0)
+					// 搜索增强end
+				} else if (this.isCloudDataList || this.isCloudDataTree) { // 回显 Cloud 数据
+					this.loading = true;
+					this.getCloudDataValue().then((res) => {
+						this.loading = false;
+						this.inputSelected = res;
+					}).catch((err) => {
+						this.loading = false;
+						this.errorMessage = err;
 					})
 				}
-			},
-			getForm(name = 'uniForms') {
-				let parent = this.$parent;
-				let parentName = parent.$options.name;
-				while (parentName !== name) {
-					parent = parent.$parent;
-					if (!parent) return false;
-					parentName = parent.$options.name;
-				}
-				return parent;
 			},
 			show() {
 				this.isOpened = true
@@ -216,10 +209,13 @@
 			hide() {
 				this.isOpened = false
 				this.$emit('popupclosed')
+				// 搜索增强start
 				this.closeSearchDom();
+				// 搜索增强end
 			},
 			handleInput() {
 				if (this.readonly) {
+					this.$emit('inputclick')
 					return
 				}
 				this.show()
@@ -235,7 +231,9 @@
 			},
 			onchange(e) {
 				this.hide()
-				this.inputSelected = e
+				this.$nextTick(() => {
+					this.inputSelected = e;
+				})
 				this._dispatchEvent(e)
 			},
 			_processReadonly(dataList, value) {
@@ -317,6 +315,7 @@
 
 <style>
 	.uni-data-tree {
+		flex: 1;
 		position: relative;
 		font-size: 14px;
 	}
@@ -333,11 +332,13 @@
 		align-items: center;
 		flex-wrap: nowrap;
 		font-size: 14px;
-		line-height: 38px;
-		padding: 0 5px;
+		/* line-height: 35px; */
+		padding: 0 10px;
+		padding-right: 5px;
 		overflow: hidden;
-		/* #ifdef APP-NVUE */
-		height: 40px;
+		height: 35px;
+		/* #ifndef APP-NVUE */
+		box-sizing: border-box;
 		/* #endif */
 	}
 
@@ -370,19 +371,24 @@
 		/* #endif */
 		flex-direction: row;
 		flex-wrap: nowrap;
-		padding: 0 5px;
+		/* padding: 0 5px; */
 	}
 
 	.selected-item {
 		flex-direction: row;
-		padding: 0 1px;
+		/* padding: 0 1px; */
 		/* #ifndef APP-NVUE */
 		white-space: nowrap;
 		/* #endif */
 	}
 
+	.text-color {
+		color: #333;
+	}
+
 	.placeholder {
 		color: grey;
+		font-size: 12px;
 	}
 
 	.input-split-line {
@@ -426,7 +432,12 @@
 	.uni-data-tree-dialog {
 		position: fixed;
 		left: 0;
+		/* #ifndef APP-NVUE */
 		top: 20%;
+		/* #endif */
+		/* #ifdef APP-NVUE */
+		top: 200px;
+		/* #endif */
 		right: 0;
 		bottom: 0;
 		background-color: #FFFFFF;
@@ -499,6 +510,11 @@
 		overflow: hidden;
 	}
 
+	.icon-clear {
+		display: flex;
+		align-items: center;
+	}
+
 	/* #ifdef H5 */
 	@media all and (min-width: 768px) {
 		.uni-data-tree-cover {
@@ -523,7 +539,7 @@
 		}
 
 		.icon-clear {
-			margin-right: 5px;
+			/* margin-right: 5px; */
 		}
 	}
 

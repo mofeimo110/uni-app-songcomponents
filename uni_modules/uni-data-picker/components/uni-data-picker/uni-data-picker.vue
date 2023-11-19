@@ -10,15 +10,14 @@
 					<scroll-view v-else-if="inputSelected.length" class="selected-area" scroll-x="true">
 						<view class="selected-list">
 							<view class="selected-item" v-for="(item,index) in inputSelected" :key="index">
-								<text class="text-color">{{item.text}}</text><text v-if="index<inputSelected.length-1"
+								<text>{{item.text}}</text><text v-if="index<inputSelected.length-1"
 									class="input-split-line">{{split}}</text>
 							</view>
 						</view>
 					</scroll-view>
 					<text v-else class="selected-area placeholder">{{placeholder}}</text>
-					<view v-if="clearIcon && !readonly && inputSelected.length" class="icon-clear"
-						@click.stop="clear">
-						<uni-icons type="clear" color="#c0c4cc" size="24"></uni-icons>
+					<view v-if="clearIcon && !readonly && inputSelected.length" class="icon-clear" @click.stop="clear">
+						<uni-icons type="clear" color="#e1e1e1" size="14"></uni-icons>
 					</view>
 					<view class="arrow-area" v-if="(!clearIcon || !inputSelected.length) && !readonly ">
 						<view class="input-arrow"></view>
@@ -76,7 +75,7 @@
 	 */
 	export default {
 		name: 'UniDataPicker',
-		emits: ['popupopened', 'popupclosed', 'nodeclick', 'input', 'change', 'update:modelValue'],
+		emits: ['popupopened', 'popupclosed', 'nodeclick', 'input', 'change', 'update:modelValue', 'inputclick'],
 		mixins: [dataPicker],
 		components: {
 			DataPickerView
@@ -128,57 +127,48 @@
 			}
 		},
 		created() {
-			this.form = this.getForm('uniForms')
-			this.formItem = this.getForm('uniFormsItem')
-			if (this.formItem) {
-				if (this.formItem.name) {
-					this.rename = this.formItem.name
-					this.form.inputChildrens.push(this)
-				}
-			}
-
 			this.$nextTick(() => {
-				this.load()
+				this.load();
 			})
+		},
+		watch: {
+			localdata: {
+				handler() {
+					this.load()
+				},
+				deep: true
+			},
 		},
 		methods: {
 			clear() {
-				this.inputSelected.splice(0)
-				this._dispatchEvent([])
+				this._dispatchEvent([]);
 			},
 			onPropsChange() {
-				this._treeData = []
-				this.selectedIndex = 0
-				this.load()
+				this._treeData = [];
+				this.selectedIndex = 0;
+
+				this.load();
 			},
 			load() {
 				if (this.readonly) {
-					this._processReadonly(this.localdata, this.dataValue)
-					return
+					this._processReadonly(this.localdata, this.dataValue);
+					return;
 				}
 
-				if (this.isLocaldata) {
-					this.loadData()
-					this.inputSelected = this.selected.slice(0)
-				} else if (!this.parentField && !this.selfField && this.hasValue) {
-					this.getNodeData(() => {
-						this.inputSelected = this.selected.slice(0)
-					})
-				} else if (this.hasValue) {
-					this.getTreePath(() => {
-						this.inputSelected = this.selected.slice(0)
+				// 回显本地数据
+				if (this.isLocalData) {
+					this.loadData();
+					this.inputSelected = this.selected.slice(0);
+				} else if (this.isCloudDataList || this.isCloudDataTree) { // 回显 Cloud 数据
+					this.loading = true;
+					this.getCloudDataValue().then((res) => {
+						this.loading = false;
+						this.inputSelected = res;
+					}).catch((err) => {
+						this.loading = false;
+						this.errorMessage = err;
 					})
 				}
-			},
-			getForm(name = 'uniForms') {
-				let parent = this.$parent;
-				let parentName = parent.$options.name;
-				while (parentName !== name) {
-					parent = parent.$parent;
-					if (!parent) return false;
-					parentName = parent.$options.name;
-				}
-				return parent;
 			},
 			show() {
 				this.isOpened = true
@@ -197,6 +187,7 @@
 			},
 			handleInput() {
 				if (this.readonly) {
+					this.$emit('inputclick')
 					return
 				}
 				this.show()
@@ -294,7 +285,7 @@
 	}
 </script>
 
-<style >
+<style>
 	.uni-data-tree {
 		flex: 1;
 		position: relative;
@@ -318,9 +309,9 @@
 		padding-right: 5px;
 		overflow: hidden;
 		height: 35px;
-		/* #ifdef APP-NVUE */
-		/* #endif */
+		/* #ifndef APP-NVUE */
 		box-sizing: border-box;
+		/* #endif */
 	}
 
 	.input-value-border {
@@ -362,7 +353,7 @@
 		white-space: nowrap;
 		/* #endif */
 	}
-	
+
 	.text-color {
 		color: #333;
 	}
@@ -413,7 +404,12 @@
 	.uni-data-tree-dialog {
 		position: fixed;
 		left: 0;
+		/* #ifndef APP-NVUE */
 		top: 20%;
+		/* #endif */
+		/* #ifdef APP-NVUE */
+		top: 200px;
+		/* #endif */
 		right: 0;
 		bottom: 0;
 		background-color: #FFFFFF;
@@ -485,7 +481,7 @@
 		flex: 1;
 		overflow: hidden;
 	}
-	
+
 	.icon-clear {
 		display: flex;
 		align-items: center;
@@ -550,5 +546,6 @@
 		border-top-width: 0;
 		border-bottom-color: #fff;
 	}
+
 	/* #endif */
-	</style>
+</style>
